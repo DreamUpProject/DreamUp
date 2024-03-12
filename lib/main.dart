@@ -239,7 +239,7 @@ class CurrentUser {
 
     requestedCreators = json['requestedCreators'] ?? {};
 
-    int count = 0;
+    int? count = 0;
     await FirebaseFirestore.instance
         .collection('users')
         .doc(id)
@@ -336,7 +336,7 @@ class CurrentUser {
 
     requestedCreators = json['requestedCreators'] ?? {};
 
-    int count = 0;
+    int? count = 0;
     await FirebaseFirestore.instance
         .collection('users')
         .doc(id)
