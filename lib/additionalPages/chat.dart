@@ -282,1031 +282,450 @@ class _ChatWidgetState extends State<ChatWidget> {
       showLandscape = true;
     }
 
-    return ChangeNotifierProvider(
-      create: (context) => ChatNetworkManager(),
-      child: Scaffold(
-        resizeToAvoidBottomInset: imageFile != null,
-        body: Stack(
-          children: [
-            loaded
-                ? StreamBuilder<QuerySnapshot>(
-                    stream: messageStream!,
-                    builder: (BuildContext context, snapshot) {
-                      if (snapshot.hasData) {
-                        var docs = snapshot.data!.docs;
+    return Scaffold(
+      resizeToAvoidBottomInset: imageFile != null,
+      body: Stack(
+        children: [
+          loaded
+              ? StreamBuilder<QuerySnapshot>(
+                  stream: messageStream!,
+                  builder: (BuildContext context, snapshot) {
+                    if (snapshot.hasData) {
+                      var docs = snapshot.data!.docs;
 
-                        if (docs.isNotEmpty) {
-                          for (var doc in docs) {
-                            var data = doc.data() as Map<String, dynamic>;
+                      if (docs.isNotEmpty) {
+                        for (var doc in docs) {
+                          var data = doc.data() as Map<String, dynamic>;
 
-                            var message = MessageClass.fromJson(data);
+                          var message = MessageClass.fromJson(data);
 
-                            var existing = chatProvider.messageList
-                                .firstWhereOrNull((element) =>
-                                    element.messageId == message.messageId);
+                          var existing = chatProvider.messageList
+                              .firstWhereOrNull((element) =>
+                                  element.messageId == message.messageId);
 
-                            if (existing == null) {
-                              chatProvider.messageList.add(message);
+                          if (existing == null) {
+                            chatProvider.messageList.add(message);
 
-                              Future.delayed(
-                                Duration.zero,
-                                () async {
-                                  setState(() {});
+                            Future.delayed(
+                              Duration.zero,
+                              () async {
+                                setState(() {});
 
-                                  await chatProvider
-                                      .saveMessages(widget.chatId);
-                                },
-                              );
-                            }
+                                await chatProvider.saveMessages(widget.chatId);
+                              },
+                            );
+                          }
+                        }
+                      }
+                    }
+
+                    return Container();
+                  },
+                )
+              : Container(),
+          loaded
+              ? StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('chats')
+                      .doc(widget.chatId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      var data = snapshot.data!.data() as Map<String, dynamic>;
+                      chatData = data;
+
+                      if (data['new'] && data['lastSender'] != currentUser) {
+                        FirebaseFirestore.instance
+                            .collection('chats')
+                            .doc(widget.chatId)
+                            .update(
+                          {
+                            'new': false,
+                          },
+                        );
+                      }
+
+                      String name = 'Nutzer';
+                      String image =
+                          'https://firebasestorage.googleapis.com/v0/b/activities-with-friends.appspot.com/o/placeholderImages%2FuserPlaceholder.png?alt=media&token=1a4e6423-446d-48b5-8bbf-466900c350ec&_gl=1*1g9i9yi*_ga*ODE3ODU3OTY4LjE2OTI2OTU2NzA.*_ga_CW55HF8NVT*MTY5ODkxNDQwMS4yMy4xLjE2OTg5MTUyNzEuNTkuMC4w';
+
+                      if (!data['isRequest']) {
+                        var info = data['shownInformation'] as Map;
+
+                        if (!info.containsKey(currentUser) && !shownSheet) {
+                          Future.delayed(Duration.zero, () {
+                            shownSheet = true;
+
+                            showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.transparent,
+                                isDismissible: false,
+                                isScrollControlled: true,
+                                enableDrag: false,
+                                builder: (context) {
+                                  return StatefulBuilder(builder:
+                                      (context, StateSetter setSheetState) {
+                                    return Container(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.6,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(
+                                            MediaQuery.of(context).size.width *
+                                                0.05,
+                                          ),
+                                          topRight: Radius.circular(
+                                            MediaQuery.of(context).size.width *
+                                                0.05,
+                                          ),
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.only(
+                                        top: MediaQuery.of(context).size.width *
+                                            0.1,
+                                        left:
+                                            MediaQuery.of(context).size.width *
+                                                0.05,
+                                        right:
+                                            MediaQuery.of(context).size.width *
+                                                0.05,
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Welche Informationen möchtest du preisgeben?',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.05,
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setSheetState(() {
+                                                if (showAll) {
+                                                  showName = false;
+                                                  showImage = false;
+                                                  showBio = false;
+                                                  showDreamUps = false;
+                                                } else {
+                                                  showName = true;
+                                                  showImage = true;
+                                                  showBio = true;
+                                                  showDreamUps = true;
+                                                }
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: showName &&
+                                                      showImage &&
+                                                      showBio &&
+                                                      showDreamUps,
+                                                  onChanged: (value) {
+                                                    setSheetState(() {
+                                                      showAll = value!;
+                                                      showName = value;
+                                                      showImage = value;
+                                                      showBio = value;
+                                                      showDreamUps = value;
+                                                    });
+                                                  },
+                                                ),
+                                                const Text(
+                                                  'Alles zeigen',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Center(
+                                            child: Container(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.9,
+                                              height: 1,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setSheetState(() {
+                                                showName = !showName;
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: showName,
+                                                  onChanged: (value) {
+                                                    setSheetState(() {
+                                                      showName = value!;
+                                                    });
+                                                  },
+                                                ),
+                                                const Text(
+                                                  'Namen zeigen',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setSheetState(() {
+                                                showImage = !showImage;
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: showImage,
+                                                  onChanged: (value) {
+                                                    setSheetState(() {
+                                                      showImage = value!;
+                                                    });
+                                                  },
+                                                ),
+                                                const Text(
+                                                  'Bild zeigen',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setSheetState(() {
+                                                showBio = !showBio;
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: showBio,
+                                                  onChanged: (value) {
+                                                    setSheetState(() {
+                                                      showBio = value!;
+                                                    });
+                                                  },
+                                                ),
+                                                const Text(
+                                                  'Profiletext zeigen',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setSheetState(() {
+                                                showDreamUps = !showDreamUps;
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: showDreamUps,
+                                                  onChanged: (value) {
+                                                    setSheetState(() {
+                                                      showDreamUps = value!;
+                                                    });
+                                                  },
+                                                ),
+                                                const Text(
+                                                  'DreamUps zeigen',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Center(
+                                              child: GestureDetector(
+                                                onTap: () async {
+                                                  confirmShownInfoFirstTime();
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 8,
+                                                    horizontal: 10,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blueAccent,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            300),
+                                                  ),
+                                                  child: const Text(
+                                                    'Bestätigen',
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  });
+                                });
+                          });
+                        }
+
+                        if (info.containsKey(widget.partnerId) &&
+                            info.containsKey(currentUser)) {
+                          var partnerInfo = info[widget.partnerId] as Map;
+
+                          bool nameUnlocked = partnerInfo['name'] == true;
+                          bool imageUnlocked = partnerInfo['image'] == true;
+
+                          var names = data['names'] as List<dynamic>;
+                          names.remove(CurrentUser.name);
+                          var partnerName = names.first;
+
+                          if (nameUnlocked) {
+                            name = partnerName;
+                          }
+
+                          var images = data['images'] as Map;
+                          var imageUrl = images[widget.partnerId];
+
+                          if (imageUnlocked) {
+                            image = imageUrl;
                           }
                         }
                       }
 
-                      return Container();
-                    },
-                  )
-                : Container(),
-            loaded
-                ? StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('chats')
-                        .doc(widget.chatId)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        var data =
-                            snapshot.data!.data() as Map<String, dynamic>;
-                        chatData = data;
-
-                        if (data['new'] && data['lastSender'] != currentUser) {
-                          FirebaseFirestore.instance
-                              .collection('chats')
-                              .doc(widget.chatId)
-                              .update(
-                            {
-                              'new': false,
-                            },
-                          );
-                        }
-
-                        String name = 'Nutzer';
-                        String image =
-                            'https://firebasestorage.googleapis.com/v0/b/activities-with-friends.appspot.com/o/placeholderImages%2FuserPlaceholder.png?alt=media&token=1a4e6423-446d-48b5-8bbf-466900c350ec&_gl=1*1g9i9yi*_ga*ODE3ODU3OTY4LjE2OTI2OTU2NzA.*_ga_CW55HF8NVT*MTY5ODkxNDQwMS4yMy4xLjE2OTg5MTUyNzEuNTkuMC4w';
-
-                        if (!data['isRequest']) {
-                          var info = data['shownInformation'] as Map;
-
-                          if (!info.containsKey(currentUser) && !shownSheet) {
-                            Future.delayed(Duration.zero, () {
-                              shownSheet = true;
-
-                              showModalBottomSheet(
-                                  context: context,
-                                  backgroundColor: Colors.transparent,
-                                  isDismissible: false,
-                                  isScrollControlled: true,
-                                  enableDrag: false,
-                                  builder: (context) {
-                                    return StatefulBuilder(builder:
-                                        (context, StateSetter setSheetState) {
-                                      return Container(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.6,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(
+                      return Scaffold(
+                        backgroundColor: Colors.transparent,
+                        resizeToAvoidBottomInset: true,
+                        body: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/images/GlassBackground.jpg',
+                                fit: BoxFit.fill,
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    top: MediaQuery.of(context).padding.top,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE3E3E3),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                        color: Colors.black26,
+                                        offset: Offset(2, 0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Container(
+                                    height: 45,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: showLandscape
+                                          ? max(
                                               MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05,
-                                            ),
-                                            topRight: Radius.circular(
+                                                  .padding
+                                                  .left,
                                               MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05,
+                                                  .padding
+                                                  .right)
+                                          : 0,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+
+                                        Navigator.push(
+                                          context,
+                                          changePage(
+                                            UserProfile(
+                                              chatId: widget.chatId,
+                                              partnerId: widget.partnerId,
                                             ),
                                           ),
-                                        ),
-                                        padding: EdgeInsets.only(
-                                          top: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.1,
-                                          left: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.05,
-                                          right: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.05,
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                        );
+                                      },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                        child: Row(
                                           children: [
-                                            const Text(
-                                              'Welche Informationen möchtest du preisgeben?',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 20,
+                                            GestureDetector(
+                                              onTap: () {
+                                                Navigator.pop(context, true);
+                                              },
+                                              child: Container(
+                                                color: Colors.transparent,
+                                                height: 45,
+                                                width: 45,
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.arrow_back_ios_new,
+                                                  ),
+                                                ),
                                               ),
+                                            ),
+                                            CircleAvatar(
+                                              backgroundImage:
+                                                  CachedNetworkImageProvider(
+                                                image,
+                                              ),
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              radius: 18,
                                             ),
                                             SizedBox(
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05,
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setSheetState(() {
-                                                  if (showAll) {
-                                                    showName = false;
-                                                    showImage = false;
-                                                    showBio = false;
-                                                    showDreamUps = false;
-                                                  } else {
-                                                    showName = true;
-                                                    showImage = true;
-                                                    showBio = true;
-                                                    showDreamUps = true;
-                                                  }
-                                                });
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Checkbox(
-                                                    value: showName &&
-                                                        showImage &&
-                                                        showBio &&
-                                                        showDreamUps,
-                                                    onChanged: (value) {
-                                                      setSheetState(() {
-                                                        showAll = value!;
-                                                        showName = value;
-                                                        showImage = value;
-                                                        showBio = value;
-                                                        showDreamUps = value;
-                                                      });
-                                                    },
-                                                  ),
-                                                  const Text(
-                                                    'Alles zeigen',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Center(
-                                              child: Container(
-                                                width: MediaQuery.of(context)
+                                              width: min(
+                                                MediaQuery.of(context)
                                                         .size
                                                         .width *
-                                                    0.9,
-                                                height: 1,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setSheetState(() {
-                                                  showName = !showName;
-                                                });
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Checkbox(
-                                                    value: showName,
-                                                    onChanged: (value) {
-                                                      setSheetState(() {
-                                                        showName = value!;
-                                                      });
-                                                    },
-                                                  ),
-                                                  const Text(
-                                                    'Namen zeigen',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setSheetState(() {
-                                                  showImage = !showImage;
-                                                });
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Checkbox(
-                                                    value: showImage,
-                                                    onChanged: (value) {
-                                                      setSheetState(() {
-                                                        showImage = value!;
-                                                      });
-                                                    },
-                                                  ),
-                                                  const Text(
-                                                    'Bild zeigen',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setSheetState(() {
-                                                  showBio = !showBio;
-                                                });
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Checkbox(
-                                                    value: showBio,
-                                                    onChanged: (value) {
-                                                      setSheetState(() {
-                                                        showBio = value!;
-                                                      });
-                                                    },
-                                                  ),
-                                                  const Text(
-                                                    'Profiletext zeigen',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setSheetState(() {
-                                                  showDreamUps = !showDreamUps;
-                                                });
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Checkbox(
-                                                    value: showDreamUps,
-                                                    onChanged: (value) {
-                                                      setSheetState(() {
-                                                        showDreamUps = value!;
-                                                      });
-                                                    },
-                                                  ),
-                                                  const Text(
-                                                    'DreamUps zeigen',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
+                                                    0.03,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.03,
                                               ),
                                             ),
                                             Expanded(
-                                              child: Center(
-                                                child: GestureDetector(
-                                                  onTap: () async {
-                                                    confirmShownInfoFirstTime();
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      vertical: 8,
-                                                      horizontal: 10,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.blueAccent,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              300),
-                                                    ),
-                                                    child: const Text(
-                                                      'Bestätigen',
-                                                      style: TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    });
-                                  });
-                            });
-                          }
-
-                          if (info.containsKey(widget.partnerId) &&
-                              info.containsKey(currentUser)) {
-                            var partnerInfo = info[widget.partnerId] as Map;
-
-                            bool nameUnlocked = partnerInfo['name'] == true;
-                            bool imageUnlocked = partnerInfo['image'] == true;
-
-                            var names = data['names'] as List<dynamic>;
-                            names.remove(CurrentUser.name);
-                            var partnerName = names.first;
-
-                            if (nameUnlocked) {
-                              name = partnerName;
-                            }
-
-                            var images = data['images'] as Map;
-                            var imageUrl = images[widget.partnerId];
-
-                            if (imageUnlocked) {
-                              image = imageUrl;
-                            }
-                          }
-                        }
-
-                        return Scaffold(
-                          backgroundColor: Colors.transparent,
-                          resizeToAvoidBottomInset: true,
-                          body: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Image.asset(
-                                  'assets/images/GlassBackground.jpg',
-                                  fit: BoxFit.fill,
-                                ),
-                              ),
-                              Column(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.only(
-                                      top: MediaQuery.of(context).padding.top,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFE3E3E3),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 10,
-                                          spreadRadius: 1,
-                                          color: Colors.black26,
-                                          offset: Offset(2, 0),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Container(
-                                      height: 45,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: showLandscape
-                                            ? max(
-                                                MediaQuery.of(context)
-                                                    .padding
-                                                    .left,
-                                                MediaQuery.of(context)
-                                                    .padding
-                                                    .right)
-                                            : 0,
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-
-                                          Navigator.push(
-                                            context,
-                                            changePage(
-                                              UserProfile(
-                                                chatId: widget.chatId,
-                                                partnerId: widget.partnerId,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          color: Colors.transparent,
-                                          child: Row(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  Navigator.pop(context, true);
-                                                },
-                                                child: Container(
-                                                  color: Colors.transparent,
-                                                  height: 45,
-                                                  width: 45,
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons.arrow_back_ios_new,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              CircleAvatar(
-                                                backgroundImage:
-                                                    CachedNetworkImageProvider(
-                                                  image,
-                                                ),
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                radius: 18,
-                                              ),
-                                              SizedBox(
-                                                width: min(
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.03,
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.03,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: SizedBox(
-                                                  height: 20,
-                                                  child: Text(
-                                                    name,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                width: min(
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.05,
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.05,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: loaded
-                                        ? Stack(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  FocusManager
-                                                      .instance.primaryFocus
-                                                      ?.unfocus();
-
-                                                  keyBoardOpen = false;
-
-                                                  setState(() {});
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: showLandscape
-                                                        ? max(
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .padding
-                                                                .left,
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .padding
-                                                                .right)
-                                                        : 0,
-                                                  ),
-                                                  child: NotificationListener<
-                                                      ScrollNotification>(
-                                                    onNotification: (note) {
-                                                      if (note
-                                                          is ScrollUpdateNotification) {
-                                                        if (scrolled == false &&
-                                                            !note.metrics
-                                                                .atEdge) {
-                                                          setState(() {
-                                                            scrolled = true;
-                                                          });
-                                                        }
-
-                                                        if (scrolled == true &&
-                                                            note.metrics
-                                                                .atEdge) {
-                                                          setState(() {
-                                                            scrolled = false;
-                                                          });
-                                                        }
-
-                                                        if (note.dragDetails !=
-                                                            null) {
-                                                          RenderBox box =
-                                                              messageInputKey
-                                                                      .currentContext
-                                                                      ?.findRenderObject()
-                                                                  as RenderBox;
-                                                          Offset position = box
-                                                              .localToGlobal(Offset
-                                                                  .zero); //this is global position
-                                                          double y =
-                                                              position.dy; //
-
-                                                          if (note
-                                                                  .dragDetails!
-                                                                  .globalPosition
-                                                                  .dy >=
-                                                              y) {
-                                                            FocusManager
-                                                                .instance
-                                                                .primaryFocus
-                                                                ?.unfocus();
-                                                          }
-                                                        }
-                                                      }
-
-                                                      return true;
-                                                    },
-                                                    child:
-                                                        StickyGroupedListView<
-                                                            MessageClass,
-                                                            DateTime>(
-                                                      key: Key(
-                                                        chatProvider
-                                                            .messageList.length
-                                                            .toString(),
-                                                      ),
-                                                      addAutomaticKeepAlives:
-                                                          true,
-                                                      itemScrollController:
-                                                          scrollController,
-                                                      padding: EdgeInsets.only(
-                                                        bottom: min(
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03,
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.03,
-                                                        ),
-                                                      ),
-                                                      physics:
-                                                          const BouncingScrollPhysics(),
-                                                      reverse: true,
-                                                      elements: chatProvider
-                                                          .messageList,
-                                                      order:
-                                                          StickyGroupedListOrder
-                                                              .ASC,
-                                                      groupBy: (MessageClass
-                                                              message) =>
-                                                          DateTime(
-                                                        message.createdOn.year,
-                                                        message.createdOn.month,
-                                                        message.createdOn.day,
-                                                      ),
-                                                      groupComparator:
-                                                          (DateTime value1,
-                                                                  DateTime
-                                                                      value2) =>
-                                                              value2.compareTo(
-                                                                  value1),
-                                                      itemComparator: (MessageClass
-                                                                  message1,
-                                                              MessageClass
-                                                                  message2) =>
-                                                          message2.createdOn
-                                                              .compareTo(message1
-                                                                  .createdOn),
-                                                      floatingHeader: true,
-                                                      groupSeparatorBuilder:
-                                                          dateSeparator,
-                                                      indexedItemBuilder:
-                                                          (BuildContext context,
-                                                              MessageClass
-                                                                  message,
-                                                              int index) {
-                                                        bool single = true;
-                                                        bool first = false;
-                                                        bool last = false;
-
-                                                        MessageClass?
-                                                            previousMessage;
-                                                        MessageClass?
-                                                            nextMessage;
-
-                                                        bool previousExisting =
-                                                            false;
-                                                        bool nextExisting =
-                                                            false;
-
-                                                        if (index > 0) {
-                                                          nextMessage =
-                                                              chatProvider
-                                                                      .messageList[
-                                                                  index - 1];
-                                                          nextExisting = true;
-                                                        }
-
-                                                        if (index + 1 <
-                                                            chatProvider
-                                                                .messageList
-                                                                .length) {
-                                                          previousMessage =
-                                                              chatProvider
-                                                                      .messageList[
-                                                                  index + 1];
-                                                          previousExisting =
-                                                              true;
-                                                        }
-
-                                                        if (!previousExisting) {
-                                                          first = true;
-                                                        }
-
-                                                        if (!nextExisting) {
-                                                          last = true;
-                                                        }
-
-                                                        DateTime thisTime =
-                                                            DateTime(
-                                                          message
-                                                              .createdOn.year,
-                                                          message
-                                                              .createdOn.month,
-                                                          message.createdOn.day,
-                                                          message
-                                                              .createdOn.hour,
-                                                          message
-                                                              .createdOn.minute,
-                                                        );
-
-                                                        DateTime? previousTime;
-                                                        DateTime? nextTime;
-
-                                                        if (previousExisting) {
-                                                          previousTime =
-                                                              DateTime(
-                                                            previousMessage!
-                                                                .createdOn.year,
-                                                            previousMessage
-                                                                .createdOn
-                                                                .month,
-                                                            previousMessage
-                                                                .createdOn.day,
-                                                            previousMessage
-                                                                .createdOn.hour,
-                                                            previousMessage
-                                                                .createdOn
-                                                                .minute,
-                                                          );
-                                                        }
-
-                                                        if (nextExisting) {
-                                                          nextTime = DateTime(
-                                                            nextMessage!
-                                                                .createdOn.year,
-                                                            nextMessage
-                                                                .createdOn
-                                                                .month,
-                                                            nextMessage
-                                                                .createdOn.day,
-                                                            nextMessage
-                                                                .createdOn.hour,
-                                                            nextMessage
-                                                                .createdOn
-                                                                .minute,
-                                                          );
-                                                        }
-
-                                                        if ((thisTime !=
-                                                                    previousTime &&
-                                                                thisTime !=
-                                                                    nextTime) ||
-                                                            (previousMessage
-                                                                        ?.creatorId !=
-                                                                    message
-                                                                        .creatorId &&
-                                                                nextMessage
-                                                                        ?.creatorId !=
-                                                                    message
-                                                                        .creatorId)) {
-                                                          single = true;
-                                                        } else {
-                                                          single = false;
-
-                                                          if (thisTime ==
-                                                                  previousTime &&
-                                                              thisTime !=
-                                                                  nextTime) {
-                                                            last = true;
-                                                          }
-                                                          if (thisTime ==
-                                                                  nextTime &&
-                                                              thisTime !=
-                                                                  previousTime) {
-                                                            first = true;
-                                                          }
-                                                        }
-
-                                                        if (message.type ==
-                                                            'image') {
-                                                          var existing = imageMessages
-                                                              .firstWhereOrNull(
-                                                                  (element) =>
-                                                                      element
-                                                                          .messageId ==
-                                                                      message
-                                                                          .messageId);
-
-                                                          if (existing ==
-                                                              null) {
-                                                            imageMessages
-                                                                .add(message);
-                                                          }
-                                                        }
-
-                                                        return buildMessageWidget(
-                                                          message: message,
-                                                          single: single,
-                                                          first: first,
-                                                          last: last,
-                                                        );
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Positioned(
-                                                right: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.05,
-                                                bottom: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.05,
-                                                child: AnimatedOpacity(
-                                                  duration: const Duration(
-                                                    milliseconds: 250,
-                                                  ),
-                                                  opacity: scrolled ? 1 : 0,
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      if (scrolled) {
-                                                        scrollController
-                                                            .scrollTo(
-                                                          index: 0,
-                                                          duration:
-                                                              const Duration(
-                                                            milliseconds: 250,
-                                                          ),
-                                                          automaticAlignment:
-                                                              false,
-                                                          alignment: 1,
-                                                        );
-                                                      }
-                                                    },
-                                                    child: Container(
-                                                      height:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.1,
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.1,
-                                                      decoration:
-                                                          const BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.white,
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            blurRadius: 7,
-                                                            spreadRadius: 1,
-                                                            offset: Offset(
-                                                              1,
-                                                              1,
-                                                            ),
-                                                            color:
-                                                                Colors.black38,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Center(
-                                                        child: Icon(
-                                                          Icons
-                                                              .arrow_drop_down_rounded,
-                                                          size: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.1,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : Container(),
-                                  ),
-                                  const SizedBox(
-                                    height: 50,
-                                  ),
-                                  SizedBox(
-                                    height:
-                                        MediaQuery.of(context).padding.bottom,
-                                  ),
-                                ],
-                              ),
-                              AnimatedPositioned(
-                                duration: const Duration(
-                                  milliseconds: 200,
-                                ),
-                                bottom: chatData!['isRequest']
-                                    ? -(MediaQuery.of(context).padding.bottom +
-                                        50)
-                                    : 0,
-                                left: 0,
-                                right: 0,
-                                child: MessageInputWidget(
-                                  key: messageInputKey,
-                                  sendingCallback: () {
-                                    setState(() {});
-                                  },
-                                  onImageSelection: (image, view) {
-                                    setState(() {
-                                      imageFile = image;
-                                    });
-                                  },
-                                  chatId: widget.chatId,
-                                  partnerId: widget.partnerId,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return Scaffold(
-                          backgroundColor: Colors.transparent,
-                          resizeToAvoidBottomInset: true,
-                          body: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Image.asset(
-                                  'assets/images/GlassBackground.jpg',
-                                  fit: BoxFit.fill,
-                                ),
-                              ),
-                              Column(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.only(
-                                      top: MediaQuery.of(context).padding.top,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFE3E3E3),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 10,
-                                          spreadRadius: 1,
-                                          color: Colors.black26,
-                                          offset: Offset(2, 0),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Container(
-                                      height: 55,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: showLandscape
-                                            ? max(
-                                                MediaQuery.of(context)
-                                                    .padding
-                                                    .left,
-                                                MediaQuery.of(context)
-                                                    .padding
-                                                    .right)
-                                            : 0,
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-
-                                          Navigator.push(
-                                            context,
-                                            changePage(
-                                              UserProfile(
-                                                chatId: widget.chatId,
-                                                partnerId: widget.partnerId,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          color: Colors.transparent,
-                                          child: Row(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  Navigator.pop(context, true);
-                                                },
-                                                child: Container(
-                                                  color: Colors.transparent,
-                                                  height: showLandscape
-                                                      ? min(
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.12,
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.12,
-                                                        )
-                                                      : min(
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.15,
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.15,
-                                                        ),
-                                                  width: showLandscape
-                                                      ? min(
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.12,
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.12,
-                                                        )
-                                                      : min(
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.15,
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.15,
-                                                        ),
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons.arrow_back_ios_new,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              CircleAvatar(
-                                                backgroundImage: Image.asset(
-                                                  'assets/uiComponents/profilePicturePlaceholder.jpg',
-                                                ).image,
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                radius: 20,
-                                              ),
-                                              SizedBox(
-                                                width: min(
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.03,
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.03,
-                                                ),
-                                              ),
-                                              Expanded(
+                                              child: SizedBox(
+                                                height: 20,
                                                 child: Text(
-                                                  widget.partnerName,
+                                                  name,
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                   style: const TextStyle(
@@ -1315,208 +734,753 @@ class _ChatWidgetState extends State<ChatWidget> {
                                                   ),
                                                 ),
                                               ),
-                                              SizedBox(
-                                                width: min(
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.05,
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.05,
-                                                ),
+                                            ),
+                                            SizedBox(
+                                              width: min(
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.05,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.05,
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: Container(),
-                                  ),
-                                  const SizedBox(
-                                    height: 50,
-                                  ),
-                                  SizedBox(
-                                    height:
-                                        MediaQuery.of(context).padding.bottom,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  )
-                : Container(),
-            Positioned.fill(
-              child: Visibility(
-                visible: imageFile != null,
-                child: Container(
-                  color: Colors.black,
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: imageFile != null
-                            ? Image.file(
-                                imageFile!,
-                              )
-                            : Container(),
-                      ),
-                      Positioned(
-                        top: MediaQuery.of(context).padding.top +
-                            min(
-                              MediaQuery.of(context).size.width * 0.02,
-                              MediaQuery.of(context).size.height * 0.02,
-                            ),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: min(
-                                  MediaQuery.of(context).size.width * 0.02,
-                                  MediaQuery.of(context).size.height * 0.02,
                                 ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  imageFile = null;
+                                Expanded(
+                                  child: loaded
+                                      ? Stack(
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () {
+                                                FocusManager
+                                                    .instance.primaryFocus
+                                                    ?.unfocus();
 
+                                                keyBoardOpen = false;
+
+                                                setState(() {});
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: showLandscape
+                                                      ? max(
+                                                          MediaQuery.of(context)
+                                                              .padding
+                                                              .left,
+                                                          MediaQuery.of(context)
+                                                              .padding
+                                                              .right)
+                                                      : 0,
+                                                ),
+                                                child: NotificationListener<
+                                                    ScrollNotification>(
+                                                  onNotification: (note) {
+                                                    if (note
+                                                        is ScrollUpdateNotification) {
+                                                      if (scrolled == false &&
+                                                          !note
+                                                              .metrics.atEdge) {
+                                                        setState(() {
+                                                          scrolled = true;
+                                                        });
+                                                      }
+
+                                                      if (scrolled == true &&
+                                                          note.metrics.atEdge) {
+                                                        setState(() {
+                                                          scrolled = false;
+                                                        });
+                                                      }
+
+                                                      if (note.dragDetails !=
+                                                          null) {
+                                                        RenderBox box = messageInputKey
+                                                                .currentContext
+                                                                ?.findRenderObject()
+                                                            as RenderBox;
+                                                        Offset position = box
+                                                            .localToGlobal(Offset
+                                                                .zero); //this is global position
+                                                        double y =
+                                                            position.dy; //
+
+                                                        if (note
+                                                                .dragDetails!
+                                                                .globalPosition
+                                                                .dy >=
+                                                            y) {
+                                                          FocusManager.instance
+                                                              .primaryFocus
+                                                              ?.unfocus();
+                                                        }
+                                                      }
+                                                    }
+
+                                                    return true;
+                                                  },
+                                                  child: StickyGroupedListView<
+                                                      MessageClass, DateTime>(
+                                                    key: Key(
+                                                      chatProvider
+                                                          .messageList.length
+                                                          .toString(),
+                                                    ),
+                                                    addAutomaticKeepAlives:
+                                                        true,
+                                                    itemScrollController:
+                                                        scrollController,
+                                                    padding: EdgeInsets.only(
+                                                      bottom: min(
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.03,
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.03,
+                                                      ),
+                                                    ),
+                                                    physics:
+                                                        const BouncingScrollPhysics(),
+                                                    reverse: true,
+                                                    elements: chatProvider
+                                                        .messageList,
+                                                    order:
+                                                        StickyGroupedListOrder
+                                                            .ASC,
+                                                    groupBy: (MessageClass
+                                                            message) =>
+                                                        DateTime(
+                                                      message.createdOn.year,
+                                                      message.createdOn.month,
+                                                      message.createdOn.day,
+                                                    ),
+                                                    groupComparator: (DateTime
+                                                                value1,
+                                                            DateTime value2) =>
+                                                        value2
+                                                            .compareTo(value1),
+                                                    itemComparator: (MessageClass
+                                                                message1,
+                                                            MessageClass
+                                                                message2) =>
+                                                        message2.createdOn
+                                                            .compareTo(message1
+                                                                .createdOn),
+                                                    floatingHeader: true,
+                                                    groupSeparatorBuilder:
+                                                        dateSeparator,
+                                                    indexedItemBuilder:
+                                                        (BuildContext context,
+                                                            MessageClass
+                                                                message,
+                                                            int index) {
+                                                      bool single = true;
+                                                      bool first = false;
+                                                      bool last = false;
+
+                                                      MessageClass?
+                                                          previousMessage;
+                                                      MessageClass? nextMessage;
+
+                                                      bool previousExisting =
+                                                          false;
+                                                      bool nextExisting = false;
+
+                                                      if (index > 0) {
+                                                        nextMessage =
+                                                            chatProvider
+                                                                    .messageList[
+                                                                index - 1];
+                                                        nextExisting = true;
+                                                      }
+
+                                                      if (index + 1 <
+                                                          chatProvider
+                                                              .messageList
+                                                              .length) {
+                                                        previousMessage =
+                                                            chatProvider
+                                                                    .messageList[
+                                                                index + 1];
+                                                        previousExisting = true;
+                                                      }
+
+                                                      if (!previousExisting) {
+                                                        first = true;
+                                                      }
+
+                                                      if (!nextExisting) {
+                                                        last = true;
+                                                      }
+
+                                                      DateTime thisTime =
+                                                          DateTime(
+                                                        message.createdOn.year,
+                                                        message.createdOn.month,
+                                                        message.createdOn.day,
+                                                        message.createdOn.hour,
+                                                        message
+                                                            .createdOn.minute,
+                                                      );
+
+                                                      DateTime? previousTime;
+                                                      DateTime? nextTime;
+
+                                                      if (previousExisting) {
+                                                        previousTime = DateTime(
+                                                          previousMessage!
+                                                              .createdOn.year,
+                                                          previousMessage
+                                                              .createdOn.month,
+                                                          previousMessage
+                                                              .createdOn.day,
+                                                          previousMessage
+                                                              .createdOn.hour,
+                                                          previousMessage
+                                                              .createdOn.minute,
+                                                        );
+                                                      }
+
+                                                      if (nextExisting) {
+                                                        nextTime = DateTime(
+                                                          nextMessage!
+                                                              .createdOn.year,
+                                                          nextMessage
+                                                              .createdOn.month,
+                                                          nextMessage
+                                                              .createdOn.day,
+                                                          nextMessage
+                                                              .createdOn.hour,
+                                                          nextMessage
+                                                              .createdOn.minute,
+                                                        );
+                                                      }
+
+                                                      if ((thisTime !=
+                                                                  previousTime &&
+                                                              thisTime !=
+                                                                  nextTime) ||
+                                                          (previousMessage
+                                                                      ?.creatorId !=
+                                                                  message
+                                                                      .creatorId &&
+                                                              nextMessage
+                                                                      ?.creatorId !=
+                                                                  message
+                                                                      .creatorId)) {
+                                                        single = true;
+                                                      } else {
+                                                        single = false;
+
+                                                        if (thisTime ==
+                                                                previousTime &&
+                                                            thisTime !=
+                                                                nextTime) {
+                                                          last = true;
+                                                        }
+                                                        if (thisTime ==
+                                                                nextTime &&
+                                                            thisTime !=
+                                                                previousTime) {
+                                                          first = true;
+                                                        }
+                                                      }
+
+                                                      if (message.type ==
+                                                          'image') {
+                                                        var existing = imageMessages
+                                                            .firstWhereOrNull(
+                                                                (element) =>
+                                                                    element
+                                                                        .messageId ==
+                                                                    message
+                                                                        .messageId);
+
+                                                        if (existing == null) {
+                                                          imageMessages
+                                                              .add(message);
+                                                        }
+                                                      }
+
+                                                      return buildMessageWidget(
+                                                        message: message,
+                                                        single: single,
+                                                        first: first,
+                                                        last: last,
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              right: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.05,
+                                              bottom: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.05,
+                                              child: AnimatedOpacity(
+                                                duration: const Duration(
+                                                  milliseconds: 250,
+                                                ),
+                                                opacity: scrolled ? 1 : 0,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    if (scrolled) {
+                                                      scrollController.scrollTo(
+                                                        index: 0,
+                                                        duration:
+                                                            const Duration(
+                                                          milliseconds: 250,
+                                                        ),
+                                                        automaticAlignment:
+                                                            false,
+                                                        alignment: 1,
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.1,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.1,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.white,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          blurRadius: 7,
+                                                          spreadRadius: 1,
+                                                          offset: Offset(
+                                                            1,
+                                                            1,
+                                                          ),
+                                                          color: Colors.black38,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .arrow_drop_down_rounded,
+                                                        size: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.1,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Container(),
+                                ),
+                                const SizedBox(
+                                  height: 50,
+                                ),
+                                SizedBox(
+                                  height: MediaQuery.of(context).padding.bottom,
+                                ),
+                              ],
+                            ),
+                            AnimatedPositioned(
+                              duration: const Duration(
+                                milliseconds: 200,
+                              ),
+                              bottom: chatData!['isRequest']
+                                  ? -(MediaQuery.of(context).padding.bottom +
+                                      50)
+                                  : 0,
+                              left: 0,
+                              right: 0,
+                              child: MessageInputWidget(
+                                key: messageInputKey,
+                                sendingCallback: () {
                                   setState(() {});
                                 },
-                                child: Icon(
-                                  Icons.close_rounded,
-                                  color: Colors.white,
-                                  size: MediaQuery.of(context).size.width * 0.1,
-                                ),
+                                onImageSelection: (image, view) {
+                                  setState(() {
+                                    imageFile = image;
+                                  });
+                                },
+                                chatId: widget.chatId,
+                                partnerId: widget.partnerId,
                               ),
-                              Expanded(
-                                child: Container(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: MediaQuery.of(context).padding.bottom +
-                            min(
-                              MediaQuery.of(context).size.width * 0.02,
-                              MediaQuery.of(context).size.height * 0.02,
                             ),
-                        right: min(
-                          MediaQuery.of(context).size.width * 0.02,
-                          MediaQuery.of(context).size.height * 0.02,
+                          ],
                         ),
-                        left: min(
-                          MediaQuery.of(context).size.width * 0.02,
-                          MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: showLandscape
-                                ? max(
-                                    MediaQuery.of(context).padding.left,
-                                    MediaQuery.of(context).padding.right,
-                                  )
-                                : 0,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  margin: EdgeInsets.all(
-                                    min(
-                                      MediaQuery.of(context).size.width * 0.02,
-                                      MediaQuery.of(context).size.height * 0.02,
-                                    ),
+                      );
+                    } else {
+                      return Scaffold(
+                        backgroundColor: Colors.transparent,
+                        resizeToAvoidBottomInset: true,
+                        body: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/images/GlassBackground.jpg',
+                                fit: BoxFit.fill,
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    top: MediaQuery.of(context).padding.top,
                                   ),
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: min(
-                                      MediaQuery.of(context).size.width * 0.01,
-                                      MediaQuery.of(context).size.height * 0.01,
-                                    ),
-                                    horizontal: min(
-                                      MediaQuery.of(context).size.width * 0.03,
-                                      MediaQuery.of(context).size.height * 0.03,
-                                    ),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE3E3E3),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                        color: Colors.black26,
+                                        offset: Offset(2, 0),
+                                      ),
+                                    ],
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(
-                                      min(
-                                        MediaQuery.of(context).size.width *
-                                            0.05,
-                                        MediaQuery.of(context).size.height *
-                                            0.05,
+                                  child: Container(
+                                    height: 55,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: showLandscape
+                                          ? max(
+                                              MediaQuery.of(context)
+                                                  .padding
+                                                  .left,
+                                              MediaQuery.of(context)
+                                                  .padding
+                                                  .right)
+                                          : 0,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+
+                                        Navigator.push(
+                                          context,
+                                          changePage(
+                                            UserProfile(
+                                              chatId: widget.chatId,
+                                              partnerId: widget.partnerId,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                        child: Row(
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () {
+                                                Navigator.pop(context, true);
+                                              },
+                                              child: Container(
+                                                color: Colors.transparent,
+                                                height: showLandscape
+                                                    ? min(
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.12,
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.12,
+                                                      )
+                                                    : min(
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.15,
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.15,
+                                                      ),
+                                                width: showLandscape
+                                                    ? min(
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.12,
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.12,
+                                                      )
+                                                    : min(
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.15,
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.15,
+                                                      ),
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.arrow_back_ios_new,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            CircleAvatar(
+                                              backgroundImage: Image.asset(
+                                                'assets/uiComponents/profilePicturePlaceholder.jpg',
+                                              ).image,
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              radius: 20,
+                                            ),
+                                            SizedBox(
+                                              width: min(
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.03,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.03,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                widget.partnerName,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: min(
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.05,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.05,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    border: Border.all(
-                                      color: Colors.black45,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: TextField(
-                                    controller: imageSubTextController,
-                                    minLines: 1,
-                                    maxLines: showLandscape ? 2 : 7,
-                                    enableSuggestions: true,
-                                    textCapitalization:
-                                        TextCapitalization.sentences,
-                                    autocorrect: true,
-                                    decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      hintText: 'Bildunterschrift',
-                                    ),
                                   ),
                                 ),
+                                Expanded(
+                                  child: Container(),
+                                ),
+                                const SizedBox(
+                                  height: 50,
+                                ),
+                                SizedBox(
+                                  height: MediaQuery.of(context).padding.bottom,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                )
+              : Container(),
+          Positioned.fill(
+            child: Visibility(
+              visible: imageFile != null,
+              child: Container(
+                color: Colors.black,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: imageFile != null
+                          ? Image.file(
+                              imageFile!,
+                            )
+                          : Container(),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top +
+                          min(
+                            MediaQuery.of(context).size.width * 0.02,
+                            MediaQuery.of(context).size.height * 0.02,
+                          ),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: min(
+                                MediaQuery.of(context).size.width * 0.02,
+                                MediaQuery.of(context).size.height * 0.02,
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  chatProvider.sendImageMessage(
-                                    chatId: widget.chatId,
-                                    file: imageFile,
-                                    subText: imageSubTextController.text,
-                                    partnerId: widget.partnerId,
-                                  );
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(
-                                    bottom: min(
-                                      MediaQuery.of(context).size.width * 0.02,
-                                      MediaQuery.of(context).size.height * 0.02,
-                                    ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                imageFile = null;
+
+                                setState(() {});
+                              },
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: MediaQuery.of(context).size.width * 0.1,
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: MediaQuery.of(context).padding.bottom +
+                          min(
+                            MediaQuery.of(context).size.width * 0.02,
+                            MediaQuery.of(context).size.height * 0.02,
+                          ),
+                      right: min(
+                        MediaQuery.of(context).size.width * 0.02,
+                        MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      left: min(
+                        MediaQuery.of(context).size.width * 0.02,
+                        MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: showLandscape
+                              ? max(
+                                  MediaQuery.of(context).padding.left,
+                                  MediaQuery.of(context).padding.right,
+                                )
+                              : 0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                margin: EdgeInsets.all(
+                                  min(
+                                    MediaQuery.of(context).size.width * 0.02,
+                                    MediaQuery.of(context).size.height * 0.02,
                                   ),
-                                  child: CircleAvatar(
-                                    radius: min(
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: min(
+                                    MediaQuery.of(context).size.width * 0.01,
+                                    MediaQuery.of(context).size.height * 0.01,
+                                  ),
+                                  horizontal: min(
+                                    MediaQuery.of(context).size.width * 0.03,
+                                    MediaQuery.of(context).size.height * 0.03,
+                                  ),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    min(
                                       MediaQuery.of(context).size.width * 0.05,
                                       MediaQuery.of(context).size.height * 0.05,
                                     ),
-                                    backgroundColor: Colors.white,
-                                    child: const Icon(
-                                      Icons.send_rounded,
-                                      color: Colors.black87,
-                                    ),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.black45,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: imageSubTextController,
+                                  minLines: 1,
+                                  maxLines: showLandscape ? 2 : 7,
+                                  enableSuggestions: true,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                  autocorrect: true,
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    hintText: 'Bildunterschrift',
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                chatProvider.sendImageMessage(
+                                  chatId: widget.chatId,
+                                  file: imageFile,
+                                  subText: imageSubTextController.text,
+                                  partnerId: widget.partnerId,
+                                );
+
+                                setState(() {
+                                  imageSubTextController.text = '';
+                                  imageFile = null;
+                                });
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                  bottom: min(
+                                    MediaQuery.of(context).size.width * 0.02,
+                                    MediaQuery.of(context).size.height * 0.02,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  radius: min(
+                                    MediaQuery.of(context).size.width * 0.05,
+                                    MediaQuery.of(context).size.height * 0.05,
+                                  ),
+                                  backgroundColor: Colors.white,
+                                  child: const Icon(
+                                    Icons.send_rounded,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2456,6 +2420,8 @@ class _MessageInputWidgetState extends State<MessageInputWidget>
                             message: sendController.text,
                             partnerId: widget.partnerId,
                           );
+
+                          sendController.text = '';
                         },
                         child: Container(
                           color: Colors.transparent,
@@ -2514,6 +2480,8 @@ class ChatNetworkManager with ChangeNotifier {
     }
 
     print('messages saved');
+
+    notifyListeners();
   }
 
   Future loadMessages(String chatId) async {
@@ -2527,6 +2495,8 @@ class ChatNetworkManager with ChangeNotifier {
       var file = File('$path/chats/$chatId/messageFile');
 
       var json = await file.readAsString();
+
+      print(json);
 
       var decoded = jsonDecode(json);
 
@@ -2568,6 +2538,8 @@ class ChatNetworkManager with ChangeNotifier {
 
       print('messages saved');
     }
+
+    notifyListeners();
   }
 
   Future saveMediaOnPhone({
@@ -2617,6 +2589,8 @@ class ChatNetworkManager with ChangeNotifier {
       );
 
       messageList.add(messageObject);
+
+      notifyListeners();
 
       var currentFile = file;
 
@@ -2718,6 +2692,8 @@ class ChatNetworkManager with ChangeNotifier {
 
       messageList.add(messageObject);
 
+      notifyListeners();
+
       await saveMessages(chatId);
 
       await messageDoc.set({
@@ -2796,6 +2772,18 @@ class MessageClass {
     content = json['content'];
     imageSubText = json['imageSubText'];
     decided = json['decided'] ?? false;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'messageId': messageId,
+      'creatorId': creatorId,
+      'createdOn': createdOn.toString(),
+      'type': type,
+      'content': content,
+      'imageSubText': imageSubText ?? '',
+      'decided': decided ?? false,
+    };
   }
 }
 //endregion

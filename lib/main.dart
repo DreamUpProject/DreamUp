@@ -866,6 +866,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => GoogleAuthenticationProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => ChatNetworkManager(),
+        )
       ],
       child: const MyApp(),
     ),
