@@ -11,14 +11,7 @@ import 'package:video_player/video_player.dart';
 
 import '../main.dart';
 
-int index = 0;
-
-List<Widget> VideoPlayers = const [
-  FriendshipVideoPlayer(),
-  HobbyVideoPlayer(),
-  DateVideoPlayer(),
-  DateVideoPlayer(),
-];
+List<VideoPlayerController> _controllers = [];
 
 class CreationOpeningScreen extends StatefulWidget {
   final bool fromProfile;
@@ -34,19 +27,108 @@ class CreationOpeningScreen extends StatefulWidget {
 
 class _CreationOpeningScreenState extends State<CreationOpeningScreen> {
   String category = '';
-
   bool clickedPremium = false;
 
-  final PageController pageController = PageController(
-    initialPage: 0,
-    viewportFraction: 0.8,
-  );
+  int _currentIndex = 0;
+
+  final PageController _pageController =
+      PageController(initialPage: 0, viewportFraction: 0.8);
+
+  @override
+  void initState() {
+    super.initState();
+
+    print('is calling init state!');
+
+    _pageController.addListener(() {
+      int nextPage = _pageController.page!.round();
+      if (_currentIndex != nextPage) {
+        setState(() {
+          _currentIndex = nextPage;
+        });
+      }
+      _playCurrentVideo();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var first = VideoPlayerController.asset(
+        'assets/videos/FriendshipVideo.mp4',
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      )
+        ..setLooping(true)
+        ..setVolume(0);
+
+      print('got first video');
+
+      await first.initialize();
+
+      print('initialized');
+
+      _controllers.add(first);
+
+      _playCurrentVideo();
+
+      setState(() {});
+
+      _initializeControllers();
+    });
+  }
+
+  Future<void> _initializeControllers() async {
+    _controllers.add(
+      VideoPlayerController.asset(
+        'assets/videos/JacobVersionCropped.mp4',
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      )
+        ..setLooping(true)
+        ..setVolume(0),
+    );
+
+    _controllers.add(
+      VideoPlayerController.asset(
+        'assets/videos/DateVideo.mp4',
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      )
+        ..setLooping(true)
+        ..setVolume(0),
+    );
+
+    _controllers.add(
+      VideoPlayerController.asset(
+        'assets/videos/DateVideo.mp4',
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      )
+        ..setLooping(true)
+        ..setVolume(0),
+    );
+
+    for (int i = 1; i < _controllers.length; i++) {
+      var controller = _controllers[i];
+      await controller.initialize();
+    }
+  }
+
+  void _playCurrentVideo() {
+    for (int i = 0; i < _controllers.length; i++) {
+      if (i == _currentIndex) {
+        _controllers[i].play();
+      } else {
+        _controllers[i]
+          ..pause()
+          ..seekTo(Duration.zero);
+      }
+    }
+  }
 
   @override
   void dispose() {
-    index = 0;
+    _pageController.dispose();
 
-    pageController.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+
+    _controllers.clear();
 
     super.dispose();
   }
@@ -61,7 +143,7 @@ class _CreationOpeningScreenState extends State<CreationOpeningScreen> {
           alignment: Alignment.center,
           children: [
             CreationBackground(
-              index: index,
+              index: _currentIndex,
             ),
             Positioned(
               bottom: MediaQuery.of(context).size.height * 0.4 +
@@ -110,13 +192,8 @@ class _CreationOpeningScreenState extends State<CreationOpeningScreen> {
                 width: MediaQuery.of(context).size.width,
                 child: PageView(
                   scrollDirection: Axis.horizontal,
-                  onPageChanged: (page) {
-                    index = page;
-
-                    setState(() {});
-                  },
                   physics: const BouncingScrollPhysics(),
-                  controller: pageController,
+                  controller: _pageController,
                   children: [
                     Center(
                       child: ClipRRect(
@@ -834,144 +911,21 @@ class _CreationOpeningScreenState extends State<CreationOpeningScreen> {
   }
 }
 
-class DateVideoPlayer extends StatefulWidget {
-  const DateVideoPlayer({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _DateVideoPlayerState createState() => _DateVideoPlayerState();
-}
-
-class _DateVideoPlayerState extends State<DateVideoPlayer> {
-  late VideoPlayerController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = VideoPlayerController.asset(
-      'assets/videos/DateVideo.mp4',
-      videoPlayerOptions: VideoPlayerOptions(
-        mixWithOthers: true,
-      ),
-    )
-      ..setLooping(true)
-      ..setVolume(0)
-      ..initialize().then((_) => setState(() {}))
-      ..play();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return VideoPlayer(controller);
-  }
-}
-
-class HobbyVideoPlayer extends StatefulWidget {
-  const HobbyVideoPlayer({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _HobbyVideoPlayerState createState() => _HobbyVideoPlayerState();
-}
-
-class _HobbyVideoPlayerState extends State<HobbyVideoPlayer> {
-  late VideoPlayerController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = VideoPlayerController.asset(
-      'assets/videos/JacobVersionCropped.mp4',
-      videoPlayerOptions: VideoPlayerOptions(
-        mixWithOthers: true,
-      ),
-    )
-      ..setLooping(true)
-      ..setVolume(0)
-      ..initialize().then((_) => setState(() {}))
-      ..play();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return VideoPlayer(controller);
-  }
-}
-
-class CreationBackground extends StatefulWidget {
+class CreationBackground extends StatelessWidget {
   final int index;
 
-  const CreationBackground({
-    Key? key,
-    required this.index,
-  }) : super(key: key);
-
-  @override
-  State<CreationBackground> createState() => _CreationBackgroundState();
-}
-
-class _CreationBackgroundState extends State<CreationBackground> {
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: VideoPlayers[widget.index],
-    );
-  }
-}
-
-class FriendshipVideoPlayer extends StatefulWidget {
-  const FriendshipVideoPlayer({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _FriendshipVideoPlayerState createState() => _FriendshipVideoPlayerState();
-}
-
-class _FriendshipVideoPlayerState extends State<FriendshipVideoPlayer> {
-  late VideoPlayerController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = VideoPlayerController.asset(
-      'assets/videos/FriendshipVideo.mp4',
-      videoPlayerOptions: VideoPlayerOptions(
-        mixWithOthers: true,
-      ),
-    )
-      //..addListener(() => setState(() {}))
-      ..setLooping(true)
-      ..setVolume(0)
-      ..initialize().then((_) => setState(() {}))
-      ..play();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
+  const CreationBackground({Key? key, required this.index}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return VideoPlayer(controller);
+    if (_controllers.isNotEmpty) {
+      var controller = _controllers[index];
+
+      return Positioned.fill(
+        child: VideoPlayer(controller),
+      );
+    } else {
+      return Container();
+    }
   }
 }
