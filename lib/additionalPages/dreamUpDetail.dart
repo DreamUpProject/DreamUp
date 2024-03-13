@@ -22,6 +22,7 @@ import '../mainScreens/thread.dart';
 import '../utils/audioWidgets.dart';
 import '../utils/imageEditingIsolate.dart';
 
+//region Global Variables
 Map<String, dynamic> creatorInfo = {};
 List<Map<String, dynamic>> creatorWishes = [];
 
@@ -29,7 +30,9 @@ bool loading = false;
 
 ImageProvider? dreamUpImage;
 ImageProvider? blurredImage;
+//endregion
 
+//region UI Logic
 class DreamUpDetailPage extends StatefulWidget {
   final Map<String, dynamic> dreamUpData;
 
@@ -451,7 +454,7 @@ class _DreamUpDetailPageState extends State<DreamUpDetailPage>
         child: SizedBox.expand(
           child: Stack(
             children: [
-              VibeDetailBackground(
+              DreamUpDetailBackground(
                 dreamUpData: widget.dreamUpData,
               ),
               SizedBox.expand(
@@ -1081,19 +1084,20 @@ class _DreamUpDetailPageState extends State<DreamUpDetailPage>
   }
 }
 
-class VibeDetailBackground extends StatefulWidget {
+class DreamUpDetailBackground extends StatefulWidget {
   final Map<String, dynamic> dreamUpData;
 
-  const VibeDetailBackground({
+  const DreamUpDetailBackground({
     required this.dreamUpData,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<VibeDetailBackground> createState() => _VibeDetailBackgroundState();
+  State<DreamUpDetailBackground> createState() =>
+      _DreamUpDetailBackgroundState();
 }
 
-class _VibeDetailBackgroundState extends State<VibeDetailBackground> {
+class _DreamUpDetailBackgroundState extends State<DreamUpDetailBackground> {
   Future<String> get appDirectory async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -1269,3 +1273,4 @@ class _VibeDetailBackgroundState extends State<VibeDetailBackground> {
           );
   }
 }
+//endregion

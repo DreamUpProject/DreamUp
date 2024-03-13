@@ -379,7 +379,7 @@ class _EditOverviewState extends State<EditOverview>
           child: Stack(
             children: [
               widget.newImage == null
-                  ? VibeDetailBackground(
+                  ? DreamUpDetailBackground(
                       dreamUpData: widget.dreamUpData,
                     )
                   : EditOverviewBackground(

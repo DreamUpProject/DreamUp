@@ -15,9 +15,6 @@ class PersonalQuestionPage extends StatefulWidget {
 }
 
 class _PersonalQuestionPageState extends State<PersonalQuestionPage> {
-  // pretty old page, therefore much room for improvement coding wise
-  // also, not clear if this will be in the final app version
-
   bool blackHumorYes = false;
   bool blackHumorNo = false;
 

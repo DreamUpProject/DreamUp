@@ -8,8 +8,11 @@ import 'package:friendivity/additionalPages/dreamUpDetail.dart';
 
 import '../main.dart';
 
+//region Global Variables
 var color = const Color(0xFF485868);
+//endregion
 
+//region UI Logic
 class UserProfile extends StatefulWidget {
   final String chatId;
   final String partnerId;
@@ -555,3 +558,4 @@ class ProfileBackground extends StatelessWidget {
     );
   }
 }
+//endregion

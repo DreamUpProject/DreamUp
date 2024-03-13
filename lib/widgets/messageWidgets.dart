@@ -12,6 +12,7 @@ import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 
 import '../additionalPages/chat.dart';
 
+//region Text
 class TextMessageWidget extends StatefulWidget {
   final MessageClass message;
   final String chatId;
@@ -299,7 +300,9 @@ class _TextMessageWidgetState extends State<TextMessageWidget>
     }
   }
 }
+//endregion
 
+//region Image
 class ImageMessageWidget extends StatefulWidget {
   final MessageClass message;
   final String chatId;
@@ -829,7 +832,9 @@ class _ImageMessageWidgetState extends State<ImageMessageWidget>
     }
   }
 }
+//endregion
 
+//region System
 class SystemMessageWidget extends StatefulWidget {
   final MessageClass message;
   final String chatId;
@@ -1344,3 +1349,4 @@ class _SystemMessageWidgetState extends State<SystemMessageWidget>
     );
   }
 }
+//endregion

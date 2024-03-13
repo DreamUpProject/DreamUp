@@ -21,9 +21,12 @@ import '../main.dart';
 import '../utils/audioWidgets.dart';
 import '../utils/imageEditingIsolate.dart';
 
+//region Global Variables
 Map creatorInfo = {};
 List creatorWishes = [];
+//endregion
 
+//region UI Logic
 class CreationOverview extends StatefulWidget {
   final Map<String, dynamic> dreamUpData;
   final File? vibeImage;
@@ -1740,3 +1743,4 @@ class _CreationOverviewBackgroundState
           );
   }
 }
+//endregion

@@ -18,8 +18,11 @@ import 'package:record/record.dart';
 import '../main.dart';
 import '../utils/audioWidgets.dart';
 
+//region Global Variables
 int maxKeyQuestions = 3;
+//endregion
 
+//region UI Logic
 class CreationStepPage extends StatefulWidget {
   final String vibeType;
 
@@ -3534,3 +3537,4 @@ class _CreationStepPageState extends State<CreationStepPage>
     );
   }
 }
+//endregion

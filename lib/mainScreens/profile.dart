@@ -9,17 +9,20 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:friendivity/additionalPages/dreamUpDetail.dart';
+import 'package:friendivity/additionalPages/premium.dart';
 import 'package:friendivity/main.dart';
 import 'package:friendivity/mainScreens/creation.dart';
-import 'package:friendivity/mainScreens/premium.dart';
 import 'package:friendivity/mainScreens/thread.dart';
 
 import '../additionalPages/personalAttributes.dart';
 import '../additionalPages/profileInformation.dart';
 import '../additionalPages/settings.dart';
 
+//region Global Variables
 var color = const Color(0xFF485868);
+//endregion
 
+//region UI Logic
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
 
@@ -1047,3 +1050,4 @@ class _ProfileBackgroundState extends State<ProfileBackground> {
     );
   }
 }
+//endregion

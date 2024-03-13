@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+//region Global Variables
 List<Errors> errorList = [];
+//endregion
 
+//region UI Logic
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
 
@@ -51,7 +54,9 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 }
+//endregion
 
+//region Classes
 class Errors {
   final String error;
   final DateTime time;
@@ -61,3 +66,4 @@ class Errors {
     required this.time,
   });
 }
+//endregion

@@ -29,6 +29,7 @@ import 'additionalPages/loginScreen.dart';
 import 'mainScreens/creation.dart';
 import 'utils/imageEditingIsolate.dart';
 
+//region Global Variables
 double spacing = 0;
 
 double homeBarHeight = 0;
@@ -41,7 +42,58 @@ int animationSpeed = 250;
 DateTime? logInTime;
 
 bool gotUserData = false;
+final navigatorKey = GlobalKey<NavigatorState>();
+//endregion
 
+void main() async {
+  logInTime = DateTime.now();
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await Firebase.initializeApp();
+
+  final db = FirebaseFirestore.instance;
+  db.settings = const Settings(persistenceEnabled: false);
+
+  final AudioContext audioContext = AudioContext(
+    iOS: AudioContextIOS(
+      defaultToSpeaker: true,
+      category: AVAudioSessionCategory.playback,
+      options: [
+        AVAudioSessionOptions.defaultToSpeaker,
+        AVAudioSessionOptions.mixWithOthers,
+      ],
+    ),
+    android: AudioContextAndroid(
+      isSpeakerphoneOn: true,
+      stayAwake: true,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.assistanceSonification,
+      audioFocus: AndroidAudioFocus.gain,
+    ),
+  );
+
+  AudioPlayer.global.setGlobalAudioContext(audioContext);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => HomeBarControlProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => GoogleAuthenticationProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ChatNetworkManager(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+//region Business Logic
 class CurrentUser {
   static String? id;
   static String? mail;
@@ -826,57 +878,9 @@ class HomeBarControlProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+//endregion
 
-void main() async {
-  logInTime = DateTime.now();
-
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await Firebase.initializeApp();
-
-  final db = FirebaseFirestore.instance;
-  db.settings = const Settings(persistenceEnabled: false);
-
-  final AudioContext audioContext = AudioContext(
-    iOS: AudioContextIOS(
-      defaultToSpeaker: true,
-      category: AVAudioSessionCategory.playback,
-      options: [
-        AVAudioSessionOptions.defaultToSpeaker,
-        AVAudioSessionOptions.mixWithOthers,
-      ],
-    ),
-    android: AudioContextAndroid(
-      isSpeakerphoneOn: true,
-      stayAwake: true,
-      contentType: AndroidContentType.music,
-      usageType: AndroidUsageType.assistanceSonification,
-      audioFocus: AndroidAudioFocus.gain,
-    ),
-  );
-
-  AudioPlayer.global.setGlobalAudioContext(audioContext);
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => HomeBarControlProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => GoogleAuthenticationProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => ChatNetworkManager(),
-        )
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-final navigatorKey = GlobalKey<NavigatorState>();
-
+//region UI Logic
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -1563,6 +1567,74 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 }
 
+class Background extends StatefulWidget {
+  final Widget child;
+
+  const Background({Key? key, required this.child}) : super(key: key);
+
+  @override
+  State<Background> createState() => _BackgroundState();
+}
+
+class _BackgroundState extends State<Background> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          // image: getDetailUCs()[0].image.image,
+          image:
+              Image.asset('assets/images/GlassMorphismTestImage3.jpeg').image,
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+          ),
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+class HomeBarClipper extends CustomClipper<Path> {
+  @override
+  getClip(Size size) {
+    double height = size.height - spacing;
+
+    final path = Path();
+
+    path.moveTo(size.width * 0.42, 0);
+
+    path.cubicTo(size.width * 0.475, 0, size.width * 0.455, height * 0.9,
+        size.width * 0.5, height * 0.9);
+
+    path.cubicTo(size.width * 0.545, height * 0.9, size.width * 0.525, 0,
+        size.width * 0.58, 0);
+
+    path.lineTo(size.width, 0);
+
+    path.lineTo(size.width, height + spacing);
+
+    path.lineTo(0, height + spacing);
+
+    path.lineTo(0, 0);
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<dynamic> oldClipper) {
+    return true;
+  }
+}
+//endregion
+
+//region Operations
 double getBarPosition(int index, BuildContext context) {
   double position = 0;
 
@@ -1608,40 +1680,6 @@ Widget getIcon(BuildContext context, int index) {
   }
 }
 
-class Background extends StatefulWidget {
-  final Widget child;
-
-  const Background({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<Background> createState() => _BackgroundState();
-}
-
-class _BackgroundState extends State<Background> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          // image: getDetailUCs()[0].image.image,
-          image:
-              Image.asset('assets/images/GlassMorphismTestImage3.jpeg').image,
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-          ),
-          child: widget.child,
-        ),
-      ),
-    );
-  }
-}
-
 Route changePage(Widget destination) {
   return SwipeablePageRoute(
     builder: (context) => destination,
@@ -1660,35 +1698,4 @@ Route changePage(Widget destination) {
     },
   );
 }
-
-class HomeBarClipper extends CustomClipper<Path> {
-  @override
-  getClip(Size size) {
-    double height = size.height - spacing;
-
-    final path = Path();
-
-    path.moveTo(size.width * 0.42, 0);
-
-    path.cubicTo(size.width * 0.475, 0, size.width * 0.455, height * 0.9,
-        size.width * 0.5, height * 0.9);
-
-    path.cubicTo(size.width * 0.545, height * 0.9, size.width * 0.525, 0,
-        size.width * 0.58, 0);
-
-    path.lineTo(size.width, 0);
-
-    path.lineTo(size.width, height + spacing);
-
-    path.lineTo(0, height + spacing);
-
-    path.lineTo(0, 0);
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<dynamic> oldClipper) {
-    return true;
-  }
-}
+//endregion

@@ -13,6 +13,7 @@ import 'package:swipeable_page_route/swipeable_page_route.dart';
 import '../additionalPages/chat.dart';
 import '../main.dart';
 
+//region UI Logic
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({
     Key? key,
@@ -788,7 +789,9 @@ class _ChatsScreenState extends State<ChatsScreen>
     );
   }
 }
+//endregion
 
+//region Operations
 Route goToChat(String chatId, CachedNetworkImageProvider image, String name,
     String partnerId) {
   return SwipeablePageRoute(
@@ -812,3 +815,4 @@ Route goToChat(String chatId, CachedNetworkImageProvider image, String name,
     },
   );
 }
+//endregion

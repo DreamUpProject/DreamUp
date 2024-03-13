@@ -25,6 +25,7 @@ import '../additionalPages/dreamUpSearch.dart';
 import '../utils/audioWidgets.dart';
 import '../utils/imageEditingIsolate.dart';
 
+//region Global Variables
 int currentIndex = 0;
 int maxIndex = 0;
 int refreshCounter = 0;
@@ -66,6 +67,22 @@ List<String> loadingSteps = [];
 
 bool scrolling = false;
 
+String filterType = '';
+
+String lastFriendshipId = '';
+bool sawAllFriendships = false;
+String lastActionId = '';
+bool sawAllActions = false;
+
+int oldCounter = 0;
+
+double fontSize = 25;
+double smallTextSize = 16;
+
+int ageRange = 3;
+//endregion
+
+//region Debugging
 class DebugTool {
   static List<dynamic> FriendshipDreamUps = [];
   static List<dynamic> ActionDreamUps = [];
@@ -301,23 +318,9 @@ class DebugTool {
     Fluttertoast.showToast(msg: 'Tool updated');
   }
 }
+//endregion
 
-class DreamUpAlgorithmManager {
-  static bool filtering = false;
-
-  static List<String> Types = [
-    'Aktion',
-    'Freundschaft',
-  ];
-
-  static List<String> PremiumTypes = [
-    'Date',
-    'Beziehung',
-  ];
-
-  static List<Query> QueryList = [];
-}
-
+//region UI Logic
 class DreamUpThread extends StatelessWidget {
   const DreamUpThread({Key? key}) : super(key: key);
 
@@ -335,15 +338,6 @@ class DreamUpScreenContent extends StatefulWidget {
   @override
   State<DreamUpScreenContent> createState() => _DreamUpScreenContentState();
 }
-
-String filterType = '';
-
-String lastFriendshipId = '';
-bool sawAllFriendships = false;
-String lastActionId = '';
-bool sawAllActions = false;
-
-int oldCounter = 0;
 
 class _DreamUpScreenContentState extends State<DreamUpScreenContent>
     with TickerProviderStateMixin {
@@ -2694,7 +2688,7 @@ class _DreamUpScreenContentState extends State<DreamUpScreenContent>
                                 : const CustomScrollPhysics(),
                             itemCount: vibeList.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return VibeScrollItems(
+                              return DreamUpScrollItem(
                                 showPanel: () {
                                   setState(() {});
                                 },
@@ -3227,7 +3221,7 @@ class _DreamUpScreenContentState extends State<DreamUpScreenContent>
                       Positioned(
                         top: MediaQuery.of(context).padding.top + 55,
                         right: MediaQuery.of(context).size.width * 0.025,
-                        child: VibeFilterWidget(
+                        child: DreamUpFilterWidget(
                           filterVibes: (String type) {
                             filterType = type;
 
@@ -4016,21 +4010,21 @@ class _MainScreenBackgroundState extends State<MainScreenBackground> {
   }
 }
 
-class VibeFilterWidget extends StatefulWidget {
+class DreamUpFilterWidget extends StatefulWidget {
   final void Function(String filterType) filterVibes;
   final void Function() resetVibes;
 
-  const VibeFilterWidget({
+  const DreamUpFilterWidget({
     Key? key,
     required this.filterVibes,
     required this.resetVibes,
   }) : super(key: key);
 
   @override
-  State<VibeFilterWidget> createState() => _VibeFilterWidgetState();
+  State<DreamUpFilterWidget> createState() => _DreamUpFilterWidgetState();
 }
 
-class _VibeFilterWidgetState extends State<VibeFilterWidget> {
+class _DreamUpFilterWidgetState extends State<DreamUpFilterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -4206,12 +4200,7 @@ class _VibeFilterWidgetState extends State<VibeFilterWidget> {
   }
 }
 
-double fontSize = 25;
-double smallTextSize = 16;
-
-int ageRange = 3;
-
-class VibeScrollItems extends StatefulWidget {
+class DreamUpScrollItem extends StatefulWidget {
   final void Function() showPanel;
   final void Function(bool expand) expandDescription;
   final DraggableScrollableController connectionDragController;
@@ -4219,7 +4208,7 @@ class VibeScrollItems extends StatefulWidget {
   final Map<String, dynamic> vibeData;
   final CarouselController controller;
 
-  const VibeScrollItems({
+  const DreamUpScrollItem({
     Key? key,
     required this.showPanel,
     required this.expandDescription,
@@ -4230,10 +4219,10 @@ class VibeScrollItems extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<VibeScrollItems> createState() => _VibeScrollItemsState();
+  State<DreamUpScrollItem> createState() => _DreamUpScrollItemState();
 }
 
-class _VibeScrollItemsState extends State<VibeScrollItems>
+class _DreamUpScrollItemState extends State<DreamUpScrollItem>
     with SingleTickerProviderStateMixin {
   final currentUser = FirebaseAuth.instance.currentUser?.uid;
 
@@ -4709,6 +4698,24 @@ class _VibeScrollItemsState extends State<VibeScrollItems>
     );
   }
 }
+//endregion
+
+//region Business Logic
+class DreamUpAlgorithmManager {
+  static bool filtering = false;
+
+  static List<String> Types = [
+    'Aktion',
+    'Freundschaft',
+  ];
+
+  static List<String> PremiumTypes = [
+    'Date',
+    'Beziehung',
+  ];
+
+  static List<Query> QueryList = [];
+}
 
 class CustomScrollPhysics extends ScrollPhysics {
   const CustomScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
@@ -4797,3 +4804,4 @@ class CustomScrollPhysics extends ScrollPhysics {
   @override
   double get dragStartDistanceMotionThreshold => 3.5;
 }
+//endregion

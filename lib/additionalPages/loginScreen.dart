@@ -11,8 +11,11 @@ import 'package:video_player/video_player.dart';
 
 import '../utils/contactSupport.dart';
 
+//region Global Variables
 String video = 'assets/videos/JacobVersionCropped.mp4';
+//endregion
 
+//region UI Logic
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -1474,7 +1477,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+//endregion
 
+//region Widgets
 class AssetPlayerWidget extends StatefulWidget {
   const AssetPlayerWidget({Key? key}) : super(key: key);
 
@@ -1526,7 +1531,9 @@ class VideoPlayerWidget extends StatelessWidget {
 
   Widget buildVideoPlayer() => VideoPlayer(controller);
 }
+//endregion
 
+//region Business Logic
 class GoogleAuthenticationProvider extends ChangeNotifier {
   final googleSignIn = GoogleSignIn();
 
@@ -1584,3 +1591,4 @@ class GoogleAuthenticationProvider extends ChangeNotifier {
     await newUser.set(json);
   }
 }
+//endregion

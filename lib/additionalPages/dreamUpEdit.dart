@@ -9,8 +9,11 @@ import 'package:friendivity/main.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+//region Global Variables
 int maxKeyQuestions = 3;
+//endregion
 
+//region UI Logic
 class DreamUpEditPage extends StatefulWidget {
   final Map<String, dynamic> dreamUpData;
   final Image dreamUpImage;
@@ -1591,3 +1594,4 @@ class _DreamUpEditPageState extends State<DreamUpEditPage>
     );
   }
 }
+//endregion

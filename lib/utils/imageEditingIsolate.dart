@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:stack_blur/stack_blur.dart';
 
-/// Die Darstellung eines Blur-Effekts auf einem Bild zieht auf Apple Geräten
-/// die Performance drastisch nach unten. Da wir aber nciht auf den Effekt
+/// Die Darstellung eines Blur-Effekts auf einem Bild, zieht auf Apple-Devices
+/// die Performance drastisch nach unten. Da wir aber nicht auf den Effekt
 /// verzichten wollten, fanden wir eine Lösung dafür. Anstatt den herkömmlichen,
 /// Flutter-nativen Weg zu wählen, bearbeiten wir eine Kopie des Bildes und
 /// wenden den Blur direkt auf das Bild an. So muss das Device lediglich ein

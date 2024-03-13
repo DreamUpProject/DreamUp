@@ -6,13 +6,16 @@ import 'package:decorated_icon/decorated_icon.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:friendivity/additionalPages/creationSteps.dart';
-import 'package:friendivity/mainScreens/premium.dart';
+import 'package:friendivity/additionalPages/premium.dart';
 import 'package:video_player/video_player.dart';
 
 import '../main.dart';
 
+//region Global Variables
 List<VideoPlayerController> _controllers = [];
+//endregion
 
+//region UI Logic
 class CreationOpeningScreen extends StatefulWidget {
   final bool fromProfile;
 
@@ -929,3 +932,4 @@ class CreationBackground extends StatelessWidget {
     }
   }
 }
+//endregion
