@@ -97,6 +97,7 @@ class _ChatsScreenState extends State<ChatsScreen>
                   SizedBox(
                     height: 50,
                     child: TabBar(
+                      enableFeedback: false,
                       controller: controller,
                       tabs: [
                         Container(
