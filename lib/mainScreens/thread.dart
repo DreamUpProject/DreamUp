@@ -3790,83 +3790,83 @@ class _DreamUpScreenContentState extends State<DreamUpScreenContent>
               ),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: MediaQuery.of(context).size.height * 0.125,
-            child: Visibility(
-              visible: loading,
-              child: GestureDetector(
-                onTap: () {
-                  loading = false;
-
-                  setState(() {});
-                },
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(
-                    10,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${vibeList.length}/4 DreamUps loaded',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: userInfoSteps
-                            .map<Widget>(
-                              (step) => Text(step),
-                            )
-                            .toList(),
-                      ),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: gotUserData,
-                            onChanged: (value) {},
-                          ),
-                          const Text(
-                            'Got User Data',
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: gotSeenVibes,
-                            onChanged: (value) {},
-                          ),
-                          const Text(
-                            'Got Seen DreamUps',
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: loadingSteps
-                            .map<Widget>(
-                              (step) => Text(step),
-                            )
-                            .toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // Positioned(
+          //   left: 0,
+          //   right: 0,
+          //   top: MediaQuery.of(context).size.height * 0.125,
+          //   child: Visibility(
+          //     visible: loading,
+          //     child: GestureDetector(
+          //       onTap: () {
+          //         loading = false;
+          //
+          //         setState(() {});
+          //       },
+          //       child: Container(
+          //         height: MediaQuery.of(context).size.height * 0.75,
+          //         color: Colors.white,
+          //         padding: const EdgeInsets.all(
+          //           10,
+          //         ),
+          //         child: Column(
+          //           crossAxisAlignment: CrossAxisAlignment.center,
+          //           children: [
+          //             Text(
+          //               '${vibeList.length}/4 DreamUps loaded',
+          //               style: const TextStyle(
+          //                 fontSize: 18,
+          //                 fontWeight: FontWeight.bold,
+          //               ),
+          //             ),
+          //             const SizedBox(
+          //               height: 10,
+          //             ),
+          //             Column(
+          //               mainAxisSize: MainAxisSize.min,
+          //               crossAxisAlignment: CrossAxisAlignment.start,
+          //               children: userInfoSteps
+          //                   .map<Widget>(
+          //                     (step) => Text(step),
+          //                   )
+          //                   .toList(),
+          //             ),
+          //             Row(
+          //               children: [
+          //                 Checkbox(
+          //                   value: gotUserData,
+          //                   onChanged: (value) {},
+          //                 ),
+          //                 const Text(
+          //                   'Got User Data',
+          //                 ),
+          //               ],
+          //             ),
+          //             Row(
+          //               children: [
+          //                 Checkbox(
+          //                   value: gotSeenVibes,
+          //                   onChanged: (value) {},
+          //                 ),
+          //                 const Text(
+          //                   'Got Seen DreamUps',
+          //                 ),
+          //               ],
+          //             ),
+          //             Column(
+          //               mainAxisSize: MainAxisSize.min,
+          //               crossAxisAlignment: CrossAxisAlignment.start,
+          //               children: loadingSteps
+          //                   .map<Widget>(
+          //                     (step) => Text(step),
+          //                   )
+          //                   .toList(),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
